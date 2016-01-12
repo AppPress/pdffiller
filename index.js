@@ -9,21 +9,23 @@
 "use strict";
 var child_process = require("child_process"),
     exec = child_process.exec,
+    spawn = child_process.spawn,
     fdf = require("fdf"),
+    util = require("util"),
     fs = require("fs");
 
 var pdffiller = {
 
-    getFdf: function(sourceFile, callback){
-        this.getFormFields(sourceFile, function(err, formFields){
-           if(err){
-               return callback(err);
-           }
-           var fields = {};
-           formFields.forEach(function(formField){
-               fields[formField.fieldName] = "";
-           });
-           return callback(null, fdf.generate(fields));
+    getFdf: function (sourceFile, callback) {
+        var pdftkCommand = "pdftk " + sourceFile + " generate_fdf output -";
+        exec(pdftkCommand, function (err, stdout, stderr) {
+            if (err) {
+                console.log(err);
+                return callback(err);
+            }
+            return callback(null, stdout.toString());
+
+
         });
     },
 
@@ -53,34 +55,31 @@ var pdffiller = {
         });
     },
 
-    fillForm: function (sourceFile, destinationFile, data, callback) {
-
-        //Generate the data from the field values.
-        var fdfData = fdf.generate(data),
-            tempFdfFile = "data." + (new Date().getTime()) + ".fdf";
-        //Write the temp fdf file.
-        fs.writeFile(tempFdfFile, fdfData, function (err) {
-            if (err) {
-                return callback(err);
-            }
-
-            child_process.exec("pdftk " + sourceFile + " fill_form " + tempFdfFile + " output " + destinationFile + " flatten", function (error, stdout, stderr) {
-               if (error) {
-                    console.log('exec error: ' + error);
-                    return callback(error);
-                }
-                //Delete the temporary fdf file.
-                fs.unlink(tempFdfFile, function (err) {
-                    if (err) {
-                        return callback(err);
-                    }
-                    return callback();
-                });
-            });
+    fillForm: function (inputFile, data, callback) {
+        // Generate FDF template from data
+        var fdfData = fdf.generate(data);
+        var child = child_process.spawn("pdftk", [inputFile, "fill_form", "-","output", "-", "flatten"]);
+        var buffers = [];
+        var buffersLength = 0;
+        child.stdout.on("data", function(data){
+            buffers.push(data);
+            buffersLength += data.length;
+         });
+        
+        child.on("error", function(err){
+            return callback(err);
         });
+        
+        child.on("close", function(){
+            data = Buffer.concat(buffers, buffersLength);
+            return callback(null, data);
+        });
+        child.stdin.write(fdfData);
+        child.stdin.end();
     }
 };
 
 module.exports = pdffiller;
+
 
 
