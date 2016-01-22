@@ -12,13 +12,14 @@ const child_process = require("child_process");
 const exec = child_process.exec;
 const spawn = child_process.spawn;
 const fdf = require("fdf");
+const PDFDocument = require("pdfkit");
 
-var pdffiller = {
+const pdffiller = {
 
 	getFdf: function (sourceFile, callback) {
 		const pdftkCommand = `pdftk ${sourceFile} generate_fdf output -`;
 
-		exec(pdftkCommand, (err, stdout, stderr) => {
+		exec(pdftkCommand, (err, stdout) => {
 			if (err) {
 				console.log(err);
 				return callback(err);
@@ -31,7 +32,7 @@ var pdffiller = {
 	getFormFields: function (sourceFile, callback) {
 		const pdftkCommand = `pdftk ${sourceFile} dump_data_fields_utf8`;
 
-		exec(pdftkCommand, (err, stdout, stderr) => {
+		exec(pdftkCommand, (err, stdout) => {
 			if (err) {
 				console.log(err);
 				return callback(err);
@@ -78,9 +79,64 @@ var pdffiller = {
 			data = Buffer.concat(buffers, buffersLength);
 			return callback(null, data);
 		});
+
 		child.stdin.write(fdfData);
 		child.stdin.end();
-	}
+	},
+
+	stamp: function (inputFile, image, imageLocation, callback) {
+		const child = spawn("pdftk", [inputFile, "stamp", "-","output", "-", "flatten"]);
+
+		loadImageToPdf(image, imageLocation, (err, imagePdf) => {
+			if (err) {
+				return callback(err);
+			}
+
+			let buffers = [];
+			let buffersLength = 0;
+
+			child.stdout.on("data", (data) => {
+				buffers.push(data);
+				buffersLength += data.length;
+			});
+
+			child.on("error", (err) => {
+				return callback(err);
+			});
+
+			child.on("close", () => {
+				let data = Buffer.concat(buffers, buffersLength);
+				return callback(null, data);
+			});
+
+			child.stdin.write(imagePdf);
+			child.stdin.end();
+		});
+	},
 };
+
+function loadImageToPdf(image, imageLocation, callback) {
+	const imagePdf = new PDFDocument();
+
+	let buffers = [];
+	let buffersLength = 0;
+
+	imagePdf.on("data", (data) => {
+		buffers.push(data);
+		buffersLength += data.length;
+	});
+
+	imagePdf.on("error", (err) => {
+		return callback(err);
+	});
+
+	imagePdf.on("end", () => {
+		let data = Buffer.concat(buffers, buffersLength);
+		return callback(null, data);
+	});
+
+	imagePdf.image(image, imageLocation);
+	imagePdf.end();
+}
 
 module.exports = pdffiller;

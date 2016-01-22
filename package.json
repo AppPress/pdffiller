@@ -1,35 +1,36 @@
 {
-    "name": "pdffiller",
-    "version": "0.0.8",
-    "private": false,
-    "description": "Take an existing PDF Form and data and PDF Filler will create a new PDF with all given fields populated.",
-    "main": "index.js",
-    "scripts": {
-        "test": "cd test/ && mocha test.js"
-    },
-    "keywords": [
-        "nodejs",
-        "pdftk",
-        "fdf",
-        "pdffiller",
-        "pdf"
-    ],
-    "dependencies": {
-        "fdf": "*"
-    },
-    "devDependencies": {
-        "should": "*",
-        "mocha":"*"
-    },
-    "author": {
-        "name": "John Taylor and David Baldwynn"
-    },
-    "contributors":[
-        "Adam P. Bell <adam.bell.p@gmail.com>"
-    ],
-    "license": "MIT",
-    "repository": {
-        "type":"git",
-        "url":"https://github.com/CitizensFinancialCorporation/pdffiller.git"
-    }
+  "name": "pdffiller",
+  "version": "0.0.8",
+  "private": false,
+  "description": "Take an existing PDF Form and data and PDF Filler will create a new PDF with all given fields populated.",
+  "main": "index.js",
+  "scripts": {
+    "test": "cd test/ && mocha test.js"
+  },
+  "keywords": [
+    "nodejs",
+    "pdftk",
+    "fdf",
+    "pdffiller",
+    "pdf"
+  ],
+  "dependencies": {
+    "fdf": "*",
+    "pdfkit": "0.7.2"
+  },
+  "devDependencies": {
+    "should": "*",
+    "mocha": "*"
+  },
+  "author": {
+    "name": "John Taylor and David Baldwynn"
+  },
+  "contributors": [
+    "Adam P. Bell <adam.bell.p@gmail.com>"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/CitizensFinancialCorporation/pdffiller.git"
+  }
 }
