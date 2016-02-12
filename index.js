@@ -63,7 +63,7 @@ const pdffiller = {
 	fillForm: function (inputFile, data, callback) {
 		// Generate FDF template from data
 		const fdfData = fdf.generate(data);
-		const child = spawn("pdftk", [inputFile, "fill_form", "-","output", "-", "flatten"]);
+		const child = spawn("pdftk", [inputFile, "fill_form", "-", "output", "-", "flatten"]);
 		let buffers = [];
 		let buffersLength = 0;
 		child.stdout.on("data", (data) => {
@@ -85,8 +85,6 @@ const pdffiller = {
 	},
 
 	stamp: function (inputFile, image, imageLocation, callback) {
-		const child = spawn("pdftk", [inputFile, "stamp", "-","output", "-", "flatten"]);
-
 		loadImageToPdf(image, imageLocation, (err, imagePdf) => {
 			if (err) {
 				return callback(err);
@@ -94,6 +92,8 @@ const pdffiller = {
 
 			let buffers = [];
 			let buffersLength = 0;
+
+			const child = spawn("pdftk", [inputFile, "stamp", "-", "output", "-", "flatten"]);
 
 			child.stdout.on("data", (data) => {
 				buffers.push(data);
